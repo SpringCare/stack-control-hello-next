@@ -1,0 +1,15 @@
+# How stack-control runs this repo. See README.md.
+schema: 0
+name: hello-next
+displayName: Hello Next
+description: Hello-world Next.js app launched from its repo manifest.
+runtime: node-22
+setup: npm ci && npm run build
+start: npx next start -p 3000
+port: 3000
+health: /api/health
+resources:
+  cpu: "1"
+  memory: 2Gi
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
