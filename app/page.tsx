@@ -22,7 +22,14 @@ function Fact({ label, value }: { label: string; value: string | undefined }) {
   );
 }
 
-const LAUNCH_STEPS = [
+/** One top-level `key: value` out of the manifest, without a YAML dependency. */
+function manifestField(manifest: string | null, key: string): string | null {
+  const match = manifest?.match(new RegExp(`^${key}:\\s*(.+)$`, "m"));
+  return match ? match[1].trim() : null;
+}
+
+function launchSteps(setup: string | null, start: string | null) {
+  return [
   {
     step: "Read the manifest",
     detail:
@@ -39,19 +46,25 @@ const LAUNCH_STEPS = [
   },
   {
     step: "Ran setup",
-    detail: "The same init container ran the manifest's setup command: npm ci && npm run build.",
+    detail: setup
+      ? `The same init container ran the manifest's setup command: ${setup}.`
+      : "The manifest has no setup command, so nothing ran before the app.",
   },
   {
     step: "Started the app",
     detail:
-      "The app container ran the start command from /app, health-checked on /api/health, behind the stack's own HTTPS hostname.",
+      `The app container ran ${start ?? "the start command"} from /app, health-checked on ` +
+      "/api/health, behind the stack's own HTTPS hostname.",
   },
-];
+  ];
+}
 
 export default async function Home() {
   const manifest = await readManifest();
   const repo = process.env.SC_REPO;
   const commit = process.env.SC_REPO_COMMIT;
+  const devMode = process.env.NODE_ENV === "development";
+  const steps = launchSteps(manifestField(manifest, "setup"), manifestField(manifest, "start"));
 
   return (
     <main className="screen">
@@ -72,7 +85,8 @@ export default async function Home() {
             <span className="cursor" aria-hidden="true" />
           </h1>
           <p>
-            <span className="tag">Tier 0 repo service</span>
+            <span className="tag">Tier 0 repo service</span>{" "}
+            <span className="tag">{devMode ? "dev mode · hot reload" : "production build"}</span>
           </p>
 
           <h2>What this demonstrates</h2>
@@ -89,7 +103,7 @@ export default async function Home() {
 
           <h2>How stack-control launched it</h2>
           <ol className="log">
-            {LAUNCH_STEPS.map(({ step, detail }) => (
+            {steps.map(({ step, detail }) => (
               <li key={step}>
                 <span aria-hidden="true">✓</span>
                 <span>

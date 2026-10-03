@@ -2,10 +2,10 @@
 schema: 0
 name: hello-next
 displayName: Hello Next
-description: Hello-world Next.js app launched from its repo manifest.
+description: Hello-world Next.js app launched from its repo manifest, in dev mode with hot reload.
 runtime: node-22
-setup: npm ci && npm run build
-start: npx next start -p 3000
+setup: npm ci
+start: npx next dev -p 3000 -H 0.0.0.0
 port: 3000
 health: /api/health
 resources:
